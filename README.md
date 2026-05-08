@@ -1,4 +1,4 @@
-﻿# ðŸš€ NFS Programmer CLI - v1.1
+# 🚀 NFS Programmer CLI - v1.0
 ### The Ultimate Windows Automation & Maintenance Suite
 ![NFS Banner](https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/assets/logo.txt)
 
@@ -6,7 +6,7 @@
 
 ---
 
-## âš¡ Quick Installation
+## ⚡ Quick Installation
 Open **PowerShell (Admin)** and paste the following command:
 
 ```powershell
@@ -15,37 +15,36 @@ irm https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/install.ps1 | 
 
 ---
 
-## ðŸ› ï¸ Key Features
+## 🛠️ Key Features
 
-### ðŸŒªï¸ System Optimizer
+### 🌪️ System Optimizer
 *   **Ultra Telemetry Block**: Hard-blocks Windows tracking at the registry level.
 *   **Performance Plans**: Instant activation of "Ultimate Performance" and custom power schemes.
 *   **UI Customization**: Dark mode toggles, taskbar alignment, and hidden file visibility with instant shell refresh.
 
-### ðŸ¥ Maintenance & Network
+### 🏥 Maintenance & Network
 *   **Health Diagnostics**: Generate detailed HTML battery reports and run SFC integrity scans.
 *   **Network Stack Reset**: Flush DNS and reset Winsock/IP stacks for maximum stability.
 *   **One-Click App Updater**: Scan and update **all** installed apps via Winget with a custom progress bar.
 
-### ðŸ“¦ Massive Library
+### 📦 Massive Library
 *   **ISO Library**: Fast access to clean Windows 10/11 and modified ISOs (Ghost Spectre, ROG).
 *   **App Selection**: One-click installs for Dev Kits (Node, Python, Git), Tools, and Pro Apps.
 *   **My Webs**: Integrated quick-launch for your professional profiles and social media.
 
 ---
 
-## ðŸŽ¨ Design Aesthetic
+## 🎨 Design Aesthetic
 *   **Black Background Forcing**: Guaranteed consistent look regardless of terminal theme.
 *   **NFS Red Neon UI**: High-contrast, premium console interface.
 *   **Animated Progress Bars**: Custom serialization for real-time task feedback.
 
 ---
 
-## ðŸ‘¨â€ðŸ’» Author
+## 👨‍💻 Author
 **NIFRAS** - *NFS PROGRAMMING*
 *   **GitHub**: [github.com/nfsprogramming](https://github.com/nfsprogramming)
 *   **Instagram**: [@_n_i_f_r_a_s_](https://www.instagram.com/_n_i_f_r_a_s_/)
 
 ---
 *Disclaimer: Use with caution. Some features modify system registry settings. Always have a backup!*
-
