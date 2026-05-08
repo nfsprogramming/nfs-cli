@@ -9,7 +9,7 @@
 ## ⚡ One-Line Install
 
 ```powershell
-irm https://raw.githubusercontent.com/nifras/nfs-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/install.ps1 | iex
 ```
 
 ---
