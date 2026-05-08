@@ -1,0 +1,10 @@
+# NFS Programmer CLI GitIgnore
+*.tmp
+temp_*
+/assets/logs/
+*.log
+.vscode/
+.gemini/
+/brain/
+/scratch/
+/artifacts/
