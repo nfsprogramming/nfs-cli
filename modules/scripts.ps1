@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  NFS CLI - scripts.ps1
 #  Quick system scripts and one-click Windows fixes
 # ============================================================
@@ -57,28 +57,66 @@ function Show-ScriptsMenu {
 function Invoke-CTTTool {
     Write-Section "CHRIS TITUS TECH TOOL"
     Write-Info "Launching the ultimate Windows utility..."
-    Invoke-RestMethod https://christitus.com/win | Invoke-Expression
+    $cmd = "iwr -useb https://christitus.com/win | iex"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
 }
 
 function Invoke-WinDebloat {
     Write-Section "WINDOWS 11 DEBLOATER"
     Write-Info "Opening the Universal Debloater script..."
-    Invoke-RestMethod  https://raw.githubusercontent.com/Raphire/Win11Debloater/master/Win11Debloater.ps1 | Invoke-Expression
+    $cmd = "irm https://raw.githubusercontent.com/Raphire/Win11Debloater/master/Win11Debloater.ps1 | iex"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
 }
 
 function Invoke-MAS {
     Write-Section "MICROSOFT ACTIVATION SCRIPTS"
     Write-Info "Running MAS via official online script..."
-    Invoke-RestMethod https://get.activated.win | Invoke-Expression
+    $cmd = "irm https://get.activated.win | iex"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
     Pause-Menu
 }
 
 function Invoke-Spicetify {
     Write-Section "SPICETIFY INSTALLATION"
+    
+    # Check if Spotify is running
+    if (Get-Process Spotify -ErrorAction SilentlyContinue) {
+        Write-Warn "Spotify is currently running."
+        Write-Info "Spicetify requires Spotify to be closed to apply themes correctly."
+        $c = Read-Host "  Close Spotify and continue? (Y/N)"
+        if ($c.ToUpper() -eq "Y") {
+            Stop-Process -Name Spotify -Force -ErrorAction SilentlyContinue
+            Start-Sleep 2
+        } else {
+            Write-Info "Continuing anyway... (Installation might fail or require a manual 'spicetify apply' later)"
+        }
+    }
+
     Write-Info "Downloading and installing Spicetify CLI..."
-    Invoke-WebRequest -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | Invoke-Expression
-    Write-Success "Spicetify CLI installed. Use 'spicetify apply' in Spotify."
+    Write-Warn "NOTE: If the installer asks for Marketplace, type 'N' (we will handle it with bypass next)."
+    
+    $cmd = "iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex"
+    # Run in a child process to prevent 'exit' commands from closing the CLI
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
+    
+    Write-Host ""
+    $m = Read-Host "  Install/Fix Spicetify Marketplace with Admin Bypass? (Y/N)"
+    if ($m.ToUpper() -eq "Y") {
+        Invoke-SpicetifyMarketplace
+    }
+
+    Write-Success "Spicetify process finished."
     Pause-Menu
+}
+
+function Invoke-SpicetifyMarketplace {
+    Write-Section "SPICETIFY MARKETPLACE (ADMIN BYPASS)"
+    Write-Info "Fetching Marketplace installer..."
+    
+    # Use Invoke-Command to pass the -BypassAdmin switch to the remote script
+    $cmd = "& { `$s = irm https://raw.githubusercontent.com/spicetify/spicetify-marketplace/main/resources/install.ps1; Invoke-Command -ScriptBlock ([scriptblock]::Create(`$s)) -ArgumentList '-BypassAdmin' }"
+    
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
 }
 
 function Invoke-FlushDNS {
@@ -227,18 +265,40 @@ function Invoke-UltraOptimizer {
     Write-Section "NFS ULTRA OPTIMIZER"
     if (-not (Assert-Admin)) { Pause-Menu; return }
     
-    Write-Step "Setting Power Plan to Ultimate Performance..."
-    powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
-    powercfg -setactive e9a42b02-d5df-448d-aa00-03f14749eb61
+    Write-Host "  [1] Enable (Gaming Mode)  [2] Disable (Restore Defaults)" -ForegroundColor Yellow
+    $mode = Read-Host "  Select"
     
-    Write-Step "Disabling Power Throttling..."
-    reg add "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d 1 /f | Out-Null
-    
-    Write-Step "Optimizing CPU Priority for Games..."
-    reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d 4294967295 /f | Out-Null
-    reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f | Out-Null
-    
-    Write-Success "NFS Ultra Optimization Applied!"
+    if ($mode -eq "1") {
+        Write-Step "Setting Power Plan to Ultimate Performance..."
+        # Duplicating and setting the Ultimate Performance scheme
+        powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
+        powercfg -setactive e9a42b02-d5df-448d-aa00-03f14749eb61
+        
+        Write-Step "Disabling Power Throttling..."
+        reg add "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d 1 /f | Out-Null
+        
+        Write-Step "Optimizing CPU Priority for Games..."
+        # NetworkThrottlingIndex: FFFFFFFF disables throttling
+        reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d 4294967295 /f | Out-Null
+        # SystemResponsiveness: 0 prioritizes games over background tasks
+        reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f | Out-Null
+        
+        Write-Success "NFS Ultra Optimization Applied!"
+    } elseif ($mode -eq "2") {
+        Write-Step "Reverting Power Plan to Balanced..."
+        powercfg -setactive 381b4222-f694-41f0-9685-ff5bb260df2e
+        
+        Write-Step "Enabling Power Throttling (Default)..."
+        reg delete "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /f 2>$null
+        
+        Write-Step "Restoring System Profile Defaults..."
+        reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d 10 /f | Out-Null
+        reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 20 /f | Out-Null
+        
+        Write-Success "NFS Ultra Optimization Reverted to Defaults."
+    } else {
+        Write-Warn "Action cancelled."
+    }
     Pause-Menu
 }
 

@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  NFS CLI - optimizer.ps1
 #  System tweaks, UI personalization, and performance
 # ============================================================
@@ -50,7 +50,7 @@ function Show-OptimizerMenu {
 
 function Invoke-RestoreDefaults {
     Write-Section "RESTORE DEFAULTS"
-    $confirm = Read-Host "  Reset all personalization to Windows defaults? (Y/N)"
+    $confirm = Read-Host "  Reset all personalization & performance to Windows defaults? (Y/N)"
     if ($confirm.ToUpper() -ne "Y") { return }
 
     try {
@@ -71,8 +71,22 @@ function Invoke-RestoreDefaults {
         # Search: Enabled
         $searchPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
         Set-ItemProperty -Path $searchPath -Name "BingSearchEnabled" -Value 1
+        Set-ItemProperty -Path $searchPath -Name "CanCortanaConsent" -Value 1
 
-        Write-Success "Personalization reset to Windows Defaults."
+        # Telemetry: Enable
+        Write-Step "Re-enabling Telemetry Services..."
+        Set-Service DiagTrack -StartupType Automatic -ErrorAction SilentlyContinue
+        Start-Service DiagTrack -ErrorAction SilentlyContinue
+        
+        # Registry: Remove Blocks
+        reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /f 2>$null
+        reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v "AllowTelemetry" /f 2>$null
+        
+        # Power: Back to Balanced
+        Write-Step "Restoring Balanced Power Plan..."
+        powercfg -setactive 381b4222-f694-41f0-9685-ff5bb260df2e
+
+        Write-Success "System reverted to Windows Defaults."
         Refresh-Explorer
     } catch {
         Write-Err "Restore failed: $($_.Exception.Message)"
@@ -248,4 +262,3 @@ function Invoke-ClearEventLogs {
     Write-Success "Logs cleared."
     Pause-Menu
 }
-

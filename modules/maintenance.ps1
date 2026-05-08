@@ -1,134 +1,116 @@
-﻿# ============================================================
+# ============================================================
 #  NFS CLI - maintenance.ps1
-#  System maintenance, Network tools, and Health reports
+#  System health, cleanup, and diagnostics
 # ============================================================
 . "$PSScriptRoot\helpers.ps1"
 
 function Show-MaintenanceMenu {
     while ($true) {
         Clear-Host
-        Write-Section "MAINTENANCE & NETWORK"
+        Write-Section "MAINTENANCE & HEALTH"
         Write-Host ""
-        Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkCyan
-        Write-Host "  |  SYSTEM HEALTH                                      |" -ForegroundColor Cyan
-        Write-Host "  |  1.  Generate Battery Health Report (HTML)          |" -ForegroundColor White
-        Write-Host "  |  2.  Run System File Checker (SFC /ScanNow)         |" -ForegroundColor White
-        Write-Host "  |  3.  Run Disk Cleanup (Quick Sage)                  |" -ForegroundColor White
-        Write-Host "  |                                                     |" -ForegroundColor DarkCyan
-        Write-Host "  |  NETWORK TOOLS                                      |" -ForegroundColor Cyan
-        Write-Host "  |  4.  Flush DNS & Reset IP Stack                     |" -ForegroundColor White
-        Write-Host "  |  5.  Ping Google (Stability Test)                   |" -ForegroundColor White
-        Write-Host "  |                                                     |" -ForegroundColor DarkCyan
-        Write-Host "  |  APP MANAGEMENT                                     |" -ForegroundColor Cyan
-        Write-Host "  |  U.  UPDATE ALL INSTALLED APPS (Winget)             |" -ForegroundColor Green
-        Write-Host "  |                                                     |" -ForegroundColor DarkCyan
+        Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkGreen
+        Write-Host "  |  CLEANUP TOOLS                                      |" -ForegroundColor Yellow
+        Write-Host "  |  1.  Disk Cleanup (Cleanmgr)                        |" -ForegroundColor Cyan
+        Write-Host "  |  2.  Analyze Component Store (WinSXS)               |" -ForegroundColor Cyan
+        Write-Host "  |  3.  Start Component Store Cleanup                  |" -ForegroundColor Red
+        Write-Host "  |  4.  Clear Prefetch Files                           |" -ForegroundColor Cyan
+        Write-Host "  |                                                     |" -ForegroundColor DarkGreen
+        Write-Host "  |  DIAGNOSTICS                                        |" -ForegroundColor Yellow
+        Write-Host "  |  5.  Run Chkdsk (Read-only)                         |" -ForegroundColor Cyan
+        Write-Host "  |  6.  Check Battery Health Report                    |" -ForegroundColor Cyan
+        Write-Host "  |  7.  Check Disk Health (SMART)                      |" -ForegroundColor Cyan
+        Write-Host "  |  8.  View All Network Profiles                      |" -ForegroundColor Cyan
+        Write-Host "  |                                                     |" -ForegroundColor DarkGray
         Write-Host "  |  B.  Back                                           |" -ForegroundColor DarkGray
-        Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkCyan
+        Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkGreen
         Write-Host ""
         $choice = (Read-Host "  Select").Trim().ToUpper()
 
         switch ($choice) {
-            "1"  { Invoke-BatteryReport }
-            "2"  { Invoke-SFCScan }
-            "3"  { Invoke-DiskCleanup }
-            "4"  { Invoke-NetworkReset }
-            "5"  { Invoke-PingTest }
-            "U"  { Invoke-UpdateAll }
+            "1"  { Invoke-DiskCleanup }
+            "2"  { Invoke-AnalyzeStore }
+            "3"  { Invoke-CleanupStore }
+            "4"  { Invoke-ClearPrefetch }
+            "5"  { Invoke-Chkdsk }
+            "6"  { Invoke-BatteryReport }
+            "7"  { Invoke-SmartCheck }
+            "8"  { Invoke-NetworkProfiles }
             "B"  { return }
             default { Write-Warn "Invalid option." ; Start-Sleep 1 }
         }
     }
 }
 
-function Invoke-BatteryReport {
-    Write-Section "BATTERY REPORT"
-    $path = "$env:USERPROFILE\Desktop\BatteryReport.html"
-    Write-Step "Generating report to Desktop..."
-    powercfg /batteryreport /output $path | Out-Null
-    Write-Success "Report saved to Desktop: BatteryReport.html"
-    $open = Read-Host "  Open it now? (Y/N)"
-    if ($open.ToUpper() -eq "Y") { Start-Process $path }
-    Pause-Menu
-}
-
-function Invoke-SFCScan {
-    Write-Section "SYSTEM FILE CHECKER"
-    if (-not (Assert-Admin)) { return }
-    Write-Step "Starting SFC Scan (This may take a while)..."
-    sfc /scannow
-    Write-Success "Scan process complete."
-    Pause-Menu
-}
-
 function Invoke-DiskCleanup {
     Write-Section "DISK CLEANUP"
+    Write-Info "Launching Windows Disk Cleanup..."
+    cleanmgr /d $env:SystemDrive /sageset:1
+    cleanmgr /d $env:SystemDrive /sagerun:1
+    Write-Success "Cleanup process started."
+    Pause-Menu
+}
+
+function Invoke-AnalyzeStore {
+    Write-Section "ANALYZE WINSXS"
     if (-not (Assert-Admin)) { return }
-    Write-Step "Running safe cleanup (Sagemode 1)..."
-    cleanmgr /sagerun:1
-    Write-Success "Cleanup process launched."
+    Write-Step "Analyzing component store health..."
+    Dism /Online /Cleanup-Image /AnalyzeComponentStore
     Pause-Menu
 }
 
-function Invoke-NetworkReset {
-    Write-Section "NETWORK RESET"
+function Invoke-CleanupStore {
+    Write-Section "CLEANUP WINSXS"
     if (-not (Assert-Admin)) { return }
-    Write-Step "Flushing DNS..."
-    ipconfig /flushdns | Out-Null
-    Write-Step "Resetting Winsock..."
-    netsh winsock reset | Out-Null
-    Write-Step "Resetting IP Stack..."
-    netsh int ip reset | Out-Null
-    Write-Success "Network settings reset successfully."
+    Write-Step "This may take 10-20 minutes. Proceed? (Y/N)"
+    $ans = Read-Host ">"
+    if ($ans.ToUpper() -ne "Y") { return }
+    
+    Write-Step "Starting Component Store Cleanup..."
+    Dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
+    Write-Success "Cleanup complete."
     Pause-Menu
 }
 
-function Invoke-PingTest {
-    Write-Section "PING TEST"
-    Write-Info "Pinging google.com (5 packets)..."
-    ping google.com -n 5
+function Invoke-ClearPrefetch {
+    Write-Section "CLEAR PREFETCH"
+    if (-not (Assert-Admin)) { return }
+    $path = "$env:SystemRoot\Prefetch"
+    Write-Step "Clearing $path..."
+    Get-ChildItem $path -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Write-Success "Prefetch cleared."
     Pause-Menu
 }
 
-function Invoke-UpdateAll {
-    Write-Section "UPDATE ALL APPS"
-    Write-Step "Scanning for available updates..."
-    
-    # Get the raw output
-    $raw = winget upgrade --include-unknown
-    
-    # Find the header line to determine column positions
-    $headerLine = $raw | Select-String -Pattern "Name\s+Id\s+Version"
-    if (-not $headerLine) {
-        Write-Err "Could not parse update table."
-        Pause-Menu ; return
-    }
-    
-    $headerText = $headerLine.ToString()
-    $idStart = $headerText.IndexOf("Id")
-    $versionStart = $headerText.IndexOf("Version")
-    $idLength = $versionStart - $idStart
+function Invoke-Chkdsk {
+    Write-Section "CHKDSK (READ-ONLY)"
+    Write-Step "Checking $env:SystemDrive for errors..."
+    chkdsk $env:SystemDrive
+    Pause-Menu
+}
 
-    $ids = @()
-    # Skip headers and separator lines
-    foreach ($line in ($raw | Select-Object -Skip 2)) {
-        if ($line.Length -gt $versionStart) {
-            $id = $line.Substring($idStart, $idLength).Trim()
-            # Basic validation: IDs shouldn't be empty or contain only dashes
-            if (-not [string]::IsNullOrWhiteSpace($id) -and $id -ne "Id" -and $id -notmatch "^-+$") {
-                $ids += $id
-            }
-        }
-    }
-
-    if ($ids.Count -eq 0) {
-        Write-Success "No updates found. All apps are up to date!"
+function Invoke-BatteryReport {
+    Write-Section "BATTERY REPORT"
+    $out = "$env:TEMP\battery-report.html"
+    powercfg /batteryreport /output $out
+    if (Test-Path $out) {
+        Write-Success "Report generated: $out"
+        Start-Process $out
     } else {
-        Write-Info "Found $($ids.Count) updates. Starting sequence..."
-        foreach ($id in $ids) {
-            Install-WingetApp "Updating $id" $id
-        }
-        Write-Success "All updates completed."
+        Write-Err "Failed to generate report (Desktop PC?)."
     }
     Pause-Menu
 }
 
+function Invoke-SmartCheck {
+    Write-Section "DISK SMART STATUS"
+    Get-CimInstance -Namespace root\wmi -ClassName MSStorageDriver_FailurePredictStatus | Select-Object InstanceName, PredictFailure, Reason | Format-Table -AutoSize
+    Write-Info "PredictFailure: False = Healthy, True = Failing soon."
+    Pause-Menu
+}
+
+function Invoke-NetworkProfiles {
+    Write-Section "NETWORK PROFILES"
+    Get-NetConnectionProfile | Select-Object Name, InterfaceAlias, IPv4Address, IPv6Address, NetworkCategory | Format-Table -AutoSize
+    Pause-Menu
+}
