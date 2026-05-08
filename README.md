@@ -1,6 +1,6 @@
 # 🚀 NFS Programmer CLI - v1.0
 ### The Ultimate Windows Automation & Maintenance Suite
-![NFS Banner](https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/assets/logo.txt)
+![NFS Banner](https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/assets/banner.png)
 
 **NFS Programmer CLI** is a high-end, professional automation toolkit designed for Windows power users, developers, and system administrators. It streamlines everything from initial OS setup to deep-system maintenance and network optimization.
 
