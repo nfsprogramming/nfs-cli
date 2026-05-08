@@ -44,7 +44,7 @@ irm https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/install.ps1 | 
 ## 👨‍💻 Author
 **NIFRAS** - *NFS PROGRAMMING*
 *   **GitHub**: [github.com/nfsprogramming](https://github.com/nfsprogramming)
-*   **Instagram**: [@_n_i_f_r_a_s_](https://www.instagram.com/_n_i_f_r_a_s_/)
+*   **Instagram**: [@NIFRAS](https://www.instagram.com/_.nfsphotography._/)
 
 ---
 *Disclaimer: Use with caution. Some features modify system registry settings. Always have a backup!*
