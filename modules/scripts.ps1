@@ -24,6 +24,8 @@ function Show-ScriptsMenu {
         Write-Host "  |  12. Restart Explorer                               |" -ForegroundColor Cyan
         Write-Host "  |  13. Chris Titus Tech Windows Utility               |" -ForegroundColor Green
         Write-Host "  |  14. Win11 Debloater (Universal)                    |" -ForegroundColor Green
+        Write-Host "  |  15. Reset Windows Store (WSReset)                  |" -ForegroundColor Cyan
+        Write-Host "  |  16. NFS Ultra Optimizer (Gaming Mode)              |" -ForegroundColor Yellow
         Write-Host "  |  B.  Back                                           |" -ForegroundColor DarkGray
         Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkCyan
         Write-Host ""
@@ -44,6 +46,8 @@ function Show-ScriptsMenu {
             "12" { Invoke-RestartExplorer }
             "13" { Invoke-CTTTool }
             "14" { Invoke-WinDebloat }
+            "15" { Invoke-StoreReset }
+            "16" { Invoke-UltraOptimizer }
             "B"  { return }
             default { Write-Warn "Invalid option." ; Start-Sleep 1 }
         }
@@ -208,5 +212,32 @@ function Invoke-RestartExplorer {
     Start-Sleep 1
     Start-Process explorer
     Write-Success "Explorer restarted."
+    Pause-Menu
+}
+
+function Invoke-StoreReset {
+    Write-Section "WINDOWS STORE RESET"
+    Write-Info "Running wsreset.exe... Please wait."
+    wsreset.exe
+    Write-Success "Windows Store cache cleared."
+    Pause-Menu
+}
+
+function Invoke-UltraOptimizer {
+    Write-Section "NFS ULTRA OPTIMIZER"
+    if (-not (Assert-Admin)) { Pause-Menu; return }
+    
+    Write-Step "Setting Power Plan to Ultimate Performance..."
+    powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
+    powercfg -setactive e9a42b02-d5df-448d-aa00-03f14749eb61
+    
+    Write-Step "Disabling Power Throttling..."
+    reg add "HKLM\System\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d 1 /f | Out-Null
+    
+    Write-Step "Optimizing CPU Priority for Games..."
+    reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d 4294967295 /f | Out-Null
+    reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f | Out-Null
+    
+    Write-Success "NFS Ultra Optimization Applied!"
     Pause-Menu
 }
