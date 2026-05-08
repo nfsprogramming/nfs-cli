@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS PROGRAMMER CLI - install.ps1
 #  One-line remote bootstrapper
 #  Usage: irm https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/install.ps1 | iex
@@ -92,3 +92,4 @@ $launch = Read-Host "  Launch NFS CLI now? (Y/N)"
 if ($launch -and $launch.ToUpper() -eq "Y") {
     & "$INSTALL_DIR\main.ps1"
 }
+

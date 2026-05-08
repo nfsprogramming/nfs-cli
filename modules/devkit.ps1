@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - devkit.ps1
 #  Developer environment setup
 # ============================================================
@@ -84,3 +84,4 @@ function Invoke-InstallRust {
     Start-Process $rustupPath -ArgumentList "-y" -Wait
     Write-Success "Rust installed. Restart your terminal to use 'cargo'."
 }
+

@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - optimizer.ps1
 #  System tweaks, UI personalization, and performance
 # ============================================================
@@ -248,3 +248,4 @@ function Invoke-ClearEventLogs {
     Write-Success "Logs cleared."
     Pause-Menu
 }
+

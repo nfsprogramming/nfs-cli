@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - gamesetup.ps1
 #  Game environment & launcher setup
 # ============================================================
@@ -84,3 +84,4 @@ function Invoke-InstallXNA {
     Start-Process msiexec.exe -ArgumentList "/i `"$xnaPath`" /quiet /norestart" -Wait
     Write-Success "XNA Framework 4.0 installed."
 }
+

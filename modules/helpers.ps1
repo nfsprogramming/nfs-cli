@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - helpers.ps1
 #  Shared utility functions used across all modules
 # ============================================================
@@ -90,9 +90,6 @@ function Assert-Winget {
 
 function Refresh-Explorer {
     # Notifies the shell that settings have changed (refreshes icons/extensions)
-    $shell = New-Object -ComObject Shell.Application
-    $shell.Namespace(0).Self.InvokeVerb("Properties") | Out-Null
-    # Or use the more reliable COM method to broadcast change
     $code = '[DllImport("shell32.dll")] public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);'
     $type = Add-Type -MemberDefinition $code -Name "Shell32" -Namespace "WinAPI" -PassThru
     $type::SHChangeNotify(0x08000000, 0x0000, [IntPtr]::Zero, [IntPtr]::Zero)
@@ -189,3 +186,4 @@ function Assert-Admin {
     }
     return $true
 }
+

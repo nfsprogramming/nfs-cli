@@ -1,4 +1,4 @@
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+﻿[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 # Auto-elevate to Administrator
@@ -88,7 +88,7 @@ function Show-MainMenu {
             "9" { Show-About }
             "Q" {
                 Clear-Host
-                Write-Host "`n  Goodbye NIFRAS. Stay productive. 🚀" -ForegroundColor Red
+                Write-Host "`n  Goodbye NIFRAS. Stay productive. ðŸš€" -ForegroundColor Red
                 Start-Sleep 1
                 exit
             }
@@ -102,3 +102,4 @@ function Show-MainMenu {
 
 # Entry Point
 Show-MainMenu
+

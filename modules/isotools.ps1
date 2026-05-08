@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - isotools.ps1
 #  OS Tools: tweaks, cleanup, performance tuning
 # ============================================================
@@ -190,3 +190,4 @@ function Invoke-OpenMAS {
         Open-Url "https://massgrave.dev" "Microsoft Activation Scripts"
     }
 }
+

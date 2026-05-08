@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - tools.ps1
 #  Common productivity & utility app installer
 # ============================================================
@@ -134,3 +134,4 @@ function Invoke-IDMFullInstall {
     Write-HR
     Write-Success "IDM Full Installation flow complete."
 }
+

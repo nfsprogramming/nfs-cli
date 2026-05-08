@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  NFS CLI - scripts.ps1
 #  Quick system scripts and one-click Windows fixes
 # ============================================================
@@ -57,26 +57,26 @@ function Show-ScriptsMenu {
 function Invoke-CTTTool {
     Write-Section "CHRIS TITUS TECH TOOL"
     Write-Info "Launching the ultimate Windows utility..."
-    irm https://christitus.com/win | iex
+    Invoke-RestMethod https://christitus.com/win | Invoke-Expression
 }
 
 function Invoke-WinDebloat {
     Write-Section "WINDOWS 11 DEBLOATER"
     Write-Info "Opening the Universal Debloater script..."
-    irm  https://raw.githubusercontent.com/Raphire/Win11Debloater/master/Win11Debloater.ps1 | iex
+    Invoke-RestMethod  https://raw.githubusercontent.com/Raphire/Win11Debloater/master/Win11Debloater.ps1 | Invoke-Expression
 }
 
 function Invoke-MAS {
     Write-Section "MICROSOFT ACTIVATION SCRIPTS"
     Write-Info "Running MAS via official online script..."
-    irm https://get.activated.win | iex
+    Invoke-RestMethod https://get.activated.win | Invoke-Expression
     Pause-Menu
 }
 
 function Invoke-Spicetify {
     Write-Section "SPICETIFY INSTALLATION"
     Write-Info "Downloading and installing Spicetify CLI..."
-    iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex
+    Invoke-WebRequest -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | Invoke-Expression
     Write-Success "Spicetify CLI installed. Use 'spicetify apply' in Spotify."
     Pause-Menu
 }
@@ -241,3 +241,4 @@ function Invoke-UltraOptimizer {
     Write-Success "NFS Ultra Optimization Applied!"
     Pause-Menu
 }
+
