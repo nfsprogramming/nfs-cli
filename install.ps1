@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  NFS PROGRAMMER CLI - install.ps1
 #  One-line remote bootstrapper
 #  Usage: irm https://raw.githubusercontent.com/nfsprogramming/nfs-cli/main/install.ps1 | iex
@@ -65,7 +65,8 @@ Write-Progress -Activity "NFS CLI Installer" -Completed
 
 # -- Create desktop shortcut -----------------------------------
 try {
-    $shortcutPath = "$env:USERPROFILE\Desktop\NFS CLI.lnk"
+    $desktopPath  = [Environment]::GetFolderPath("Desktop")
+    $shortcutPath = Join-Path $desktopPath "NFS CLI.lnk"
     $wsh  = New-Object -ComObject WScript.Shell
     $link = $wsh.CreateShortcut($shortcutPath)
     $link.TargetPath       = "powershell.exe"
@@ -76,7 +77,7 @@ try {
     Write-Host ""
     Write-Host "  [OK] Desktop shortcut created: NFS CLI.lnk" -ForegroundColor Green
 } catch {
-    Write-Host "  [!] Could not create desktop shortcut." -ForegroundColor Yellow
+    Write-Host "  [!] Could not create desktop shortcut. Error: $($_.Exception.Message)" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -90,6 +91,6 @@ Write-Host ""
 # -- Auto-launch -----------------------------------------------
 $launch = Read-Host "  Launch NFS CLI now? (Y/N)"
 if ($launch -and $launch.ToUpper() -eq "Y") {
-    & "$INSTALL_DIR\main.ps1"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$INSTALL_DIR\main.ps1"
 }
 

@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  NFS CLI - tools.ps1
 #  Common productivity & utility app installer
 # ============================================================
@@ -118,7 +118,7 @@ function Invoke-IDMFullInstall {
 
     # 4. Install Crack
     Write-Step "Step 3: Applying IDM Crack..."
-    $crackPath = "e:\NFS PROGRAMMER CLI\my apps\IDM_6.4x_Crack_v20.6.exe"
+    $crackPath = Join-Path $script:NFS_ROOT "my apps\IDM_6.4x_Crack_v20.6.exe"
     if (Test-Path $crackPath) {
         Write-Info "Running: $(Split-Path $crackPath -Leaf)"
         Start-Process $crackPath -Wait
