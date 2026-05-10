@@ -26,7 +26,8 @@ function Show-ScriptsMenu {
         Write-Host "  |  14. Win11 Debloater (Universal)                    |" -ForegroundColor Green
         Write-Host "  |  15. Reset Windows Store (WSReset)                  |" -ForegroundColor Cyan
         Write-Host "  |  16. NFS Ultra Optimizer (Gaming Mode)              |" -ForegroundColor Yellow
-        Write-Host "  |  17. NFS Windhawk Supreme (Translucent Style)       |" -ForegroundColor Magenta
+        Write-Host "  |  17. NFS Wallpaper Manager                          |" -ForegroundColor Green
+        Write-Host "  |  18. NFS MyApps (IDM Supreme)                       |" -ForegroundColor Cyan
         Write-Host "  |  B.  Back                                           |" -ForegroundColor DarkGray
         Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkCyan
         Write-Host ""
@@ -49,7 +50,8 @@ function Show-ScriptsMenu {
             "14" { Invoke-WinDebloat }
             "15" { Invoke-StoreReset }
             "16" { Invoke-UltraOptimizer }
-            "17" { Invoke-WindhawkSupreme }
+            "17" { Show-WallpaperMenu }
+            "18" { Invoke-IDMCrack }
             "B"  { return }
             default { Write-Warn "Invalid option." ; Start-Sleep 1 }
         }
@@ -324,59 +326,116 @@ function Invoke-UltraOptimizer {
     }
     Pause-Menu
 }
-function Invoke-WindhawkSupreme {
-    Write-Section "NFS WINDHAWK SUPREME (TRANSLUCENT STYLE)"
-    Write-Info "Mods will be saved to: assets\mods\"
-    Write-HR
+
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class Wallpaper {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+}
+"@ -ErrorAction SilentlyContinue
+
+function Show-WallpaperMenu {
+    Write-Section "NFS WALLPAPER MANAGER & SYNC"
     
-    $rootDir = Split-Path $PSScriptRoot -Parent
-    if (-not (Assert-Admin)) { return }
-    
-    # Create local assets directory for mods
-    $modDir = Join-Path $rootDir "assets\mods"
-    if (-not (Test-Path $modDir)) { New-Item -Path $modDir -ItemType Directory -Force | Out-Null }
+    $desktopPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "NFS Supreme Wallpapers"
+    $wallDirCandidate = Get-ChildItem -Path $NFS_ROOT -Directory | Where-Object { $_.Name -like "Desktop Wallpapers*" } | Select-Object -First 1
+    $localWallDir = if ($wallDirCandidate) { $wallDirCandidate.FullName } else { Join-Path $NFS_ROOT "Desktop Wallpapers...🖥️" }
 
-    Write-Step "TASK 1: Installing Aesthetic Platforms..."
-    Install-WingetApp "Windhawk (Core Engine)" "RamenSoftware.Windhawk"
-    Install-WingetApp "Mica For Everyone" "MicaForEveryone.MicaForEveryone"
-    Install-WingetApp "TranslucentTB" "9PF4KZ2VN4W9"
-
-    Write-Step "TASK 2: Downloading Supreme Mod Source Files..."
-    $mods = @(
-        @{ Label = "Translucent Windows"; Id = "translucent-windows"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/translucent-windows.cpp" },
-        @{ Label = "Taskbar Dock Animation"; Id = "taskbar-dock-animation"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-dock-animation.cpp" },
-        @{ Label = "Explorer Styler"; Id = "windows-11-file-explorer-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-file-explorer-styler.cpp" },
-        @{ Label = "Taskbar Styler"; Id = "taskbar-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-styler.cpp" },
-        @{ Label = "Start Menu Styler"; Id = "windows-11-start-menu-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-start-menu-styler.cpp" },
-        @{ Label = "Taskbar Empty Space Click"; Id = "taskbar-empty-space-click"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-empty-space-click.cpp" },
-        @{ Label = "Resource Redirect (Theming)"; Id = "resource-redirect"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/resource-redirect.cpp" },
-        @{ Label = "Notification Center Styler"; Id = "windows-11-notification-center-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-notification-center-styler.cpp" },
-        @{ Label = "Better File Sizes in Explorer"; Id = "explorer-better-file-sizes"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/explorer-better-file-sizes.cpp" },
-        @{ Label = "CEF/Spotify Tweaks"; Id = "spotify-tweaks"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/spotify-tweaks.cpp" },
-        @{ Label = "Browser Tabs Wheel Scroll"; Id = "browser-tabs-wheel-scroll"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/browser-tabs-wheel-scroll.cpp" },
-        @{ Label = "Middle Click to Close Taskbar"; Id = "taskbar-middle-click-close"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-middle-click-close.cpp" },
-        @{ Label = "Taskbar Music Lounge"; Id = "taskbar-music-lounge"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-music-lounge.cpp" },
-        @{ Label = "Taskbar Volume Control"; Id = "taskbar-volume-control"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-volume-control.cpp" },
-        @{ Label = "Win11 Accent Window Border"; Id = "windows-11-accent-window-border"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-accent-window-border.cpp" }
-    )
-
-    foreach ($mod in $mods) {
-        $targetFile = Join-Path $modDir "$($mod.Id).cpp"
-        Write-Info "Downloading $($mod.Label)..."
+    # Step 1: Sync from GitHub option
+    Write-Question "Do you want to sync/download new wallpapers from GitHub to your Desktop? (y/n)"
+    $syncChoice = Read-Host "> "
+    if ($syncChoice -eq "y") {
+        if (-not (Test-Path $desktopPath)) { New-Item -Path $desktopPath -ItemType Directory -Force | Out-Null }
+        
+        Write-Step "Downloading Supreme Wallpapers collection..."
+        $zipPath = Join-Path $env:TEMP "walls.zip"
+        $repoUrl = "https://github.com/nfsprogramming/nfs-cli/archive/refs/heads/main.zip" # Project Repo
+        
         try {
-            Invoke-WebRequest -Uri $mod.Url -OutFile $targetFile -ErrorAction Stop
+            Invoke-WebRequest -Uri $repoUrl -OutFile $zipPath -ErrorAction Stop
+            Write-Step "Extracting to Desktop..."
+            $extractPath = Join-Path $env:TEMP "nfs_extract"
+            if (Test-Path $extractPath) { Remove-Item $extractPath -Recurse -Force }
+            Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+            
+            # Find the wallpaper folder in the extracted content (handling emoji/naming)
+            $extractedWallDir = Get-ChildItem -Path $extractPath -Recurse -Directory | Where-Object { $_.Name -like "Desktop Wallpapers*" } | Select-Object -First 1
+            
+            if ($extractedWallDir) {
+                Copy-Item -Path "$($extractedWallDir.FullName)\*" -Destination $desktopPath -Force -Recurse
+                Write-Success "Sync Complete! Wallpapers saved to: Desktop\NFS Supreme Wallpapers"
+                explorer.exe $desktopPath
+            } else {
+                Write-Warn "Could not find wallpaper folder in the download. Manual import needed."
+            }
         } catch {
-            Write-Warn "Failed to download $($mod.Label). Opening web page instead."
-            Start-Process "https://windhawk.net/mods/$($mod.Id)"
+            Write-Warn "Download failed. Check your internet connection."
         }
     }
 
-    Write-Step "TASK 3: Ready for Customization..."
-    Write-Success "All mod source files downloaded to assets\mods\"
-    Write-Info "You can now modify the .cpp files before importing them into Windhawk."
+    # Step 2: Show Manager (Prefer Desktop folder if it exists and has files, otherwise local)
+    $wallDir = if (Test-Path $desktopPath) { $desktopPath } else { $localWallDir }
     
-    # Open the folder for the user
-    explorer.exe $modDir
+    if (-not (Test-Path $wallDir)) {
+        Write-Warn "Wallpaper directory not found: $wallDir"
+        Pause-Menu
+        return
+    }
+
+    $files = Get-ChildItem -Path $wallDir -File | Where-Object { $_.Extension -match '\.(jpg|jpeg|png)$' }
+    if (-not $files) {
+        if ($wallDir -eq $desktopPath) {
+            # Fallback to local if desktop is empty
+            $wallDir = $localWallDir
+            $files = Get-ChildItem -Path $wallDir -File | Where-Object { $_.Extension -match '\.(jpg|jpeg|png)$' }
+        }
+    }
+
+    if (-not $files) {
+        Write-Warn "No wallpapers found in $wallDir"
+        Pause-Menu
+        return
+    }
+
+    Write-Info "Available Wallpapers:"
+    for ($i=0; $i -lt $files.Count; $i++) {
+        $color = if ($i % 2 -eq 0) { "Cyan" } else { "Green" }
+        Write-Host "  [$($i+1)] $($files[$i].Name)" -ForegroundColor $color
+    }
+    Write-Host "  [B] Back" -ForegroundColor DarkGray
+    Write-HR
+
+    $choice = Read-Host "Select a wallpaper number"
+    if ($choice -eq "B") { return }
+
+    if ([int]::TryParse($choice, [ref]$idx) -and $idx -le $files.Count -and $idx -gt 0) {
+        $selected = $files[$idx-1].FullName
+        Write-Step "Applying Wallpaper: $($files[$idx-1].Name)..."
+        try {
+            [Wallpaper]::SystemParametersInfo(0x0014, 0, $selected, 0x01 -bor 0x02) | Out-Null
+            Write-Success "Wallpaper Applied Successfully!"
+        } catch {
+            Write-Warn "Failed to set wallpaper. You may need to do it manually."
+        }
+    } else {
+        Write-Warn "Invalid selection."
+    }
+    Pause-Menu
+}
+
+function Invoke-IDMCrack {
+    Write-Section "NFS MYAPPS - IDM SUPREME"
+    $crackPath = Join-Path $NFS_ROOT "myapps\IDM_6.4x_Crack_v20.6.exe"
     
+    if (Test-Path $crackPath) {
+        Write-Step "Launching IDM Crack..."
+        Write-Info "Please follow the instructions in the crack installer."
+        Start-Process $crackPath -Verb RunAs
+        Write-Success "IDM Crack launched with Admin privileges."
+    } else {
+        Write-Warn "IDM Crack not found at: $crackPath"
+    }
     Pause-Menu
 }

@@ -17,7 +17,6 @@ function Show-CustomAppsMenu {
         Write-Host "   9.  Photoshop (Official)    10. Mechvibes (Sound)"   -ForegroundColor Cyan
         Write-Host "   31. Microsoft PowerToys     32. WizTree (Fast Scan)" -ForegroundColor Red
         Write-Host "   33. HWInfo64 (Hardware)     34. Process Hacker"     -ForegroundColor Red
-        Write-Host "   35. IDM + CRACK (IAS)"                              -ForegroundColor Green
         Write-Host ""
         Write-Host "  -- Gaming & Social ------------------------------------" -ForegroundColor DarkYellow
         Write-Host "  11.  Discord                 12. Steam"              -ForegroundColor White
@@ -74,20 +73,11 @@ function Show-CustomAppsMenu {
             "32" { Install-WingetApp "WizTree"               "AntibodySoftware.WizTree" }
             "33" { Install-WingetApp "HWInfo64"              "REALiX.HWiNFO" }
             "34" { Install-WingetApp "Process Hacker"        "SystemInformant.SystemInformer" }
-            "35" { Invoke-IDMCrack }
             "B"  { return }
             default { Write-Warn "Invalid option." ; Start-Sleep 1 }
         }
         Pause-Menu
     }
-}
-
-function Invoke-IDMCrack {
-    Write-Step "TASK: Launching IDM Activation Suite..."
-    Write-Info "Checking for IDM installation..."
-    Install-WingetApp "IDM" "Tonec.InternetDownloadManager"
-    Write-Info "Running IAS (IDM Activation Script)..."
-    irm https://raw.githubusercontent.com/lstprjct/IDM-Activation-Script/main/IAS.ps1 | iex
 }
 
 
