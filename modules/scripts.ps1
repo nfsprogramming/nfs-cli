@@ -326,14 +326,14 @@ function Invoke-UltraOptimizer {
 }
 function Invoke-WindhawkSupreme {
     Write-Section "NFS WINDHAWK SUPREME (TRANSLUCENT STYLE)"
-    Write-Info "This will install Windhawk and download the source for supreme mods."
     Write-Info "Mods will be saved to: assets\mods\"
     Write-HR
     
+    $rootDir = Split-Path $PSScriptRoot -Parent
     if (-not (Assert-Admin)) { return }
     
     # Create local assets directory for mods
-    $modDir = Join-Path (Split-Path $NFS_ROOT -Parent) "assets\mods"
+    $modDir = Join-Path $rootDir "assets\mods"
     if (-not (Test-Path $modDir)) { New-Item -Path $modDir -ItemType Directory -Force | Out-Null }
 
     Write-Step "TASK 1: Installing Aesthetic Platforms..."

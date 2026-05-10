@@ -196,6 +196,14 @@ function Refresh-Explorer {
     $type::SHChangeNotify(0x08000000, 0x0000, [IntPtr]::Zero, [IntPtr]::Zero)
 }
 
+function Assert-Winget {
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Err "Winget is not installed. Please install App Installer from Microsoft Store."
+        return $false
+    }
+    return $true
+}
+
 function Install-WingetApp {
     param([string]$DisplayName, [string]$WingetId)
     if ([string]::IsNullOrWhiteSpace($WingetId)) {
@@ -232,6 +240,21 @@ function Install-WingetApp {
         }
     } catch {
         Write-Err "Critical Exception: $($_.Exception.Message)"
+    }
+}
+
+function Get-Config {
+    param([string]$FileName)
+    $configPath = Join-Path (Split-Path $PSScriptRoot -Parent) "assets\configs\$FileName"
+    if (-not (Test-Path $configPath)) {
+        Write-Err "Config file not found: $configPath"
+        return $null
+    }
+    try {
+        return Get-Content $configPath -Raw | ConvertFrom-Json
+    } catch {
+        Write-Err "Failed to parse $FileName. Check JSON syntax."
+        return $null
     }
 }
 
