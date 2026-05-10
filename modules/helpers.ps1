@@ -7,6 +7,7 @@ function Write-Success { param($msg) Write-Host "  [OK] $msg" -ForegroundColor G
 function Write-Info { param($msg) Write-Host "  [i]  $msg" -ForegroundColor Cyan }
 function Write-Warn { param($msg) Write-Host "  [!]  $msg" -ForegroundColor Yellow }
 function Write-Err { param($msg) Write-Host "  [X]  $msg" -ForegroundColor Red }
+function Write-Question { param($msg) Write-Host "  [?]  $msg" -ForegroundColor Magenta }
 function Write-Step { param($msg) Write-Host "`n  >> $msg" -ForegroundColor White }
 
 function Write-NFSProgress {
