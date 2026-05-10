@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  NFS CLI - devkit.ps1
 #  Developer environment setup
 # ============================================================
@@ -40,6 +40,10 @@ function Show-DevKitMenu {
         Write-Host "  |  19. Postman (API Testing)                          |" -ForegroundColor Cyan
         Write-Host "  |  20. DBeaver (Database Tool)                        |" -ForegroundColor Cyan
         Write-Host "  |  21. PowerShell 7 (Core)                            |" -ForegroundColor Cyan
+        Write-Host "  |  22. Windows Terminal (Supreme)                     |" -ForegroundColor Red
+        Write-Host "  |  23. GitHub Desktop                                 |" -ForegroundColor Cyan
+        Write-Host "  |  24. Insomnia (API Client)                          |" -ForegroundColor Cyan
+        Write-Host "  |  25. TablePlus (DB Tool)                            |" -ForegroundColor Cyan
         Write-Host "  |                                                     |" -ForegroundColor DarkBlue
         Write-Host "  |  B.  Back                                           |" -ForegroundColor DarkGray
         Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkBlue
@@ -68,6 +72,10 @@ function Show-DevKitMenu {
             "19" { Install-WingetApp "Postman"               "Postman.Postman" }
             "20" { Install-WingetApp "DBeaver"               "dbeaver.dbeaver" }
             "21" { Install-WingetApp "PowerShell 7"          "Microsoft.PowerShell" }
+            "22" { Install-WingetApp "Windows Terminal"      "Microsoft.WindowsTerminal" }
+            "23" { Install-WingetApp "GitHub Desktop"        "GitHub.GitHubDesktop" }
+            "24" { Install-WingetApp "Insomnia"              "Kong.Insomnia" }
+            "25" { Install-WingetApp "TablePlus"             "TablePlus.TablePlus" }
             "B"  { return }
             default { Write-Warn "Invalid option."; Start-Sleep 1; continue }
         }

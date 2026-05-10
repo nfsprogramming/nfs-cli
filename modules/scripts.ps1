@@ -11,7 +11,7 @@ function Show-ScriptsMenu {
         Write-Host ""
         Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkCyan
         Write-Host "  |  1.  Microsoft Activation Scripts (MAS)             |" -ForegroundColor Green
-        Write-Host "  |  2.  Spicetify (Spotify Customization)              |" -ForegroundColor Green
+        Write-Host "  |  2.  Spicetify (User Mode - Safe Patch)             |" -ForegroundColor Green
         Write-Host "  |  3.  Flush DNS Cache                                |" -ForegroundColor Cyan
         Write-Host "  |  4.  Reset Windows Update                           |" -ForegroundColor Cyan
         Write-Host "  |  5.  Clear Temp Files                               |" -ForegroundColor Cyan
@@ -26,6 +26,7 @@ function Show-ScriptsMenu {
         Write-Host "  |  14. Win11 Debloater (Universal)                    |" -ForegroundColor Green
         Write-Host "  |  15. Reset Windows Store (WSReset)                  |" -ForegroundColor Cyan
         Write-Host "  |  16. NFS Ultra Optimizer (Gaming Mode)              |" -ForegroundColor Yellow
+        Write-Host "  |  17. NFS Windhawk Supreme (Translucent Style)       |" -ForegroundColor Magenta
         Write-Host "  |  B.  Back                                           |" -ForegroundColor DarkGray
         Write-Host "  +-----------------------------------------------------+" -ForegroundColor DarkCyan
         Write-Host ""
@@ -48,6 +49,7 @@ function Show-ScriptsMenu {
             "14" { Invoke-WinDebloat }
             "15" { Invoke-StoreReset }
             "16" { Invoke-UltraOptimizer }
+            "17" { Invoke-WindhawkSupreme }
             "B"  { return }
             default { Write-Warn "Invalid option." ; Start-Sleep 1 }
         }
@@ -77,47 +79,68 @@ function Invoke-MAS {
 }
 
 function Invoke-Spicetify {
-    Write-Section "SPICETIFY INSTALLATION"
+    Write-Section "SPICETIFY (USER MODE)"
+    Write-Info "Launching Spicetify Installer..."
+    Write-Info "Opening Non-Administrator PowerShell for Permission Safety..."
     
-    # Check if Spotify is running
-    if (Get-Process Spotify -ErrorAction SilentlyContinue) {
-        Write-Warn "Spotify is currently running."
-        Write-Info "Spicetify requires Spotify to be closed to apply themes correctly."
-        $c = Read-Host "  Close Spotify and continue? (Y/N)"
-        if ($c.ToUpper() -eq "Y") {
-            Stop-Process -Name Spotify -Force -ErrorAction SilentlyContinue
-            Start-Sleep 2
-        } else {
-            Write-Info "Continuing anyway... (Installation might fail or require a manual 'spicetify apply' later)"
-        }
-    }
+    # Create temporary script
+    $tempScript = "$env:TEMP\spicetify_supreme_deploy.ps1"
+    
+    $content = @"
+Clear-Host
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Write-Host ">>> NFS SUPREME SPICETIFY DEPLOYMENT <<<" -ForegroundColor Green
+Write-Host "---------------------------------------" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  >> TASK 1: Closing Spotify..." -ForegroundColor Cyan
+Stop-Process -Name Spotify -Force -ErrorAction SilentlyContinue
+Start-Sleep 1
 
-    Write-Info "Downloading and installing Spicetify CLI..."
-    Write-Warn "NOTE: If the installer asks for Marketplace, type 'N' (we will handle it with bypass next)."
-    
-    $cmd = "iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex"
-    # Run in a child process to prevent 'exit' commands from closing the CLI
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
-    
-    Write-Host ""
-    $m = Read-Host "  Install/Fix Spicetify Marketplace with Admin Bypass? (Y/N)"
-    if ($m.ToUpper() -eq "Y") {
-        Invoke-SpicetifyMarketplace
-    }
+Write-Host "  >> TASK 2: Fetching Spicetify CLI..." -ForegroundColor Cyan
+iwr -useb https://raw.githubusercontent.com/spicetify/cli/main/install.ps1 | iex
 
-    Write-Success "Spicetify process finished."
+# Force bypass admin check and clear existing backups
+Write-Host "  >> TASK 2.1: Configuring Security Override..." -ForegroundColor Cyan
+spicetify config bypass_admin 1
+spicetify restore backup
+
+Write-Host "  >> TASK 3: Fetching Marketplace..." -ForegroundColor Cyan
+irm https://raw.githubusercontent.com/spicetify/spicetify-marketplace/main/resources/install.ps1 | iex
+
+Write-Host "  >> TASK 4: Initializing Backup & Apply..." -ForegroundColor Cyan
+spicetify backup apply --bypass-admin
+spicetify apply --bypass-admin
+
+Write-Host ""
+Write-Host ">>> SUCCESS: Spicetify is now ready!" -ForegroundColor Green
+Write-Host ">>> RESTART SPOTIFY TO SEE CHANGES." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Press any key to exit this window..."
+`$null = [Console]::ReadKey(`$true)
+"@
+
+    $content | Out-File $tempScript -Encoding UTF8 -Force
+
+    # Use a VBScript Bridge to reliably drop privileges and launch PowerShell.
+    # This is the most compatible way to 'de-elevate' and prevents Explorer folder issues.
+    try {
+        Write-Info "Executing Supreme De-Elevation Bridge..."
+        $vbsPath = "$env:TEMP\spicetify_bridge.vbs"
+        # Correctly escape quotes for VBScript: double the double-quotes inside the string.
+        $vbsContent = "Set objShell = CreateObject(`"Shell.Application`"): objShell.ShellExecute `"powershell.exe`", `"-NoProfile -ExecutionPolicy Bypass -File `"`"$tempScript`"`"`", `"`", `"open`", 1"
+        $vbsContent | Out-File $vbsPath -Encoding ASCII -Force
+        
+        Start-Process "wscript.exe" -ArgumentList "`"$vbsPath`"" -Wait
+        Remove-Item $vbsPath -Force -ErrorAction SilentlyContinue
+        Write-Success "Handoff Successful: Spicetify is deploying in User Mode."
+    } catch {
+        Write-Warn "Bridge failed. Falling back to standard process..."
+        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$tempScript`""
+    }
+    
     Pause-Menu
 }
 
-function Invoke-SpicetifyMarketplace {
-    Write-Section "SPICETIFY MARKETPLACE (ADMIN BYPASS)"
-    Write-Info "Fetching Marketplace installer..."
-    
-    # Use Invoke-Command to pass the -BypassAdmin switch to the remote script
-    $cmd = "& { `$s = irm https://raw.githubusercontent.com/spicetify/spicetify-marketplace/main/resources/install.ps1; Invoke-Command -ScriptBlock ([scriptblock]::Create(`$s)) -ArgumentList '-BypassAdmin' }"
-    
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command $cmd
-}
 
 function Invoke-FlushDNS {
     Write-Section "FLUSH DNS"
@@ -301,4 +324,59 @@ function Invoke-UltraOptimizer {
     }
     Pause-Menu
 }
+function Invoke-WindhawkSupreme {
+    Write-Section "NFS WINDHAWK SUPREME (TRANSLUCENT STYLE)"
+    Write-Info "This will install Windhawk and download the source for supreme mods."
+    Write-Info "Mods will be saved to: assets\mods\"
+    Write-HR
+    
+    if (-not (Assert-Admin)) { return }
+    
+    # Create local assets directory for mods
+    $modDir = Join-Path (Split-Path $NFS_ROOT -Parent) "assets\mods"
+    if (-not (Test-Path $modDir)) { New-Item -Path $modDir -ItemType Directory -Force | Out-Null }
 
+    Write-Step "TASK 1: Installing Aesthetic Platforms..."
+    Install-WingetApp "Windhawk (Core Engine)" "RamenSoftware.Windhawk"
+    Install-WingetApp "Mica For Everyone" "MicaForEveryone.MicaForEveryone"
+    Install-WingetApp "TranslucentTB" "9PF4KZ2VN4W9"
+
+    Write-Step "TASK 2: Downloading Supreme Mod Source Files..."
+    $mods = @(
+        @{ Label = "Translucent Windows"; Id = "translucent-windows"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/translucent-windows.cpp" },
+        @{ Label = "Taskbar Dock Animation"; Id = "taskbar-dock-animation"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-dock-animation.cpp" },
+        @{ Label = "Explorer Styler"; Id = "windows-11-file-explorer-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-file-explorer-styler.cpp" },
+        @{ Label = "Taskbar Styler"; Id = "taskbar-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-styler.cpp" },
+        @{ Label = "Start Menu Styler"; Id = "windows-11-start-menu-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-start-menu-styler.cpp" },
+        @{ Label = "Taskbar Empty Space Click"; Id = "taskbar-empty-space-click"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-empty-space-click.cpp" },
+        @{ Label = "Resource Redirect (Theming)"; Id = "resource-redirect"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/resource-redirect.cpp" },
+        @{ Label = "Notification Center Styler"; Id = "windows-11-notification-center-styler"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-notification-center-styler.cpp" },
+        @{ Label = "Better File Sizes in Explorer"; Id = "explorer-better-file-sizes"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/explorer-better-file-sizes.cpp" },
+        @{ Label = "CEF/Spotify Tweaks"; Id = "spotify-tweaks"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/spotify-tweaks.cpp" },
+        @{ Label = "Browser Tabs Wheel Scroll"; Id = "browser-tabs-wheel-scroll"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/browser-tabs-wheel-scroll.cpp" },
+        @{ Label = "Middle Click to Close Taskbar"; Id = "taskbar-middle-click-close"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-middle-click-close.cpp" },
+        @{ Label = "Taskbar Music Lounge"; Id = "taskbar-music-lounge"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-music-lounge.cpp" },
+        @{ Label = "Taskbar Volume Control"; Id = "taskbar-volume-control"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/taskbar-volume-control.cpp" },
+        @{ Label = "Win11 Accent Window Border"; Id = "windows-11-accent-window-border"; Url = "https://raw.githubusercontent.com/ramensoftware/windhawk-mods/main/mods/windows-11-accent-window-border.cpp" }
+    )
+
+    foreach ($mod in $mods) {
+        $targetFile = Join-Path $modDir "$($mod.Id).cpp"
+        Write-Info "Downloading $($mod.Label)..."
+        try {
+            Invoke-WebRequest -Uri $mod.Url -OutFile $targetFile -ErrorAction Stop
+        } catch {
+            Write-Warn "Failed to download $($mod.Label). Opening web page instead."
+            Start-Process "https://windhawk.net/mods/$($mod.Id)"
+        }
+    }
+
+    Write-Step "TASK 3: Ready for Customization..."
+    Write-Success "All mod source files downloaded to assets\mods\"
+    Write-Info "You can now modify the .cpp files before importing them into Windhawk."
+    
+    # Open the folder for the user
+    explorer.exe $modDir
+    
+    Pause-Menu
+}

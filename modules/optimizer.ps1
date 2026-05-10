@@ -16,6 +16,7 @@ function Show-OptimizerMenu {
         Write-Host "  |  3.  Toggle Taskbar Size (Small/Medium/Large)       |" -ForegroundColor Cyan
         Write-Host "  |  4.  Toggle Hidden Files Visibility                 |" -ForegroundColor Cyan
         Write-Host "  |  5.  Toggle File Extensions Visibility              |" -ForegroundColor Cyan
+        Write-Host "  |  L.  Restore Legacy Context Menu (Win11 Fix)        |" -ForegroundColor Yellow
         Write-Host "  |  R.  Restart Windows Explorer                       |" -ForegroundColor Magenta
         Write-Host "  |                                                     |" -ForegroundColor DarkYellow
         Write-Host "  |  PERFORMANCE & SYSTEM                               |" -ForegroundColor Yellow
@@ -23,6 +24,9 @@ function Show-OptimizerMenu {
         Write-Host "  |  7.  Disable Windows Telemetry (Ultra)              |" -ForegroundColor Red
         Write-Host "  |  8.  Disable Start Menu Web Search                  |" -ForegroundColor Cyan
         Write-Host "  |  9.  Clear All Event Logs                          |" -ForegroundColor Cyan
+        Write-Host "  |  H.  Toggle Hibernation (Save 2GB+ Space)           |" -ForegroundColor Cyan
+        Write-Host "  |  D.  Remove OneDrive Completely (Uninstaller)       |" -ForegroundColor Red
+        Write-Host "  |  C.  Deep Clean Temp Files                          |" -ForegroundColor Green
         Write-Host "  |  0.  RESTORE WINDOWS DEFAULTS                      |" -ForegroundColor Yellow
         Write-Host "  |                                                     |" -ForegroundColor DarkGray
         Write-Host "  |  B.  Back                                           |" -ForegroundColor DarkGray
@@ -36,17 +40,22 @@ function Show-OptimizerMenu {
             "3"  { Invoke-ToggleTaskbarSize }
             "4"  { Invoke-ToggleHiddenFiles }
             "5"  { Invoke-ToggleExtensions }
+            "L"  { Invoke-LegacyContext }
             "R"  { Invoke-RestartExplorer }
             "6"  { Invoke-UltimatePower }
             "7"  { Invoke-DisableTelemetry }
             "8"  { Invoke-DisableWebSearch }
             "9"  { Invoke-ClearEventLogs }
+            "H"  { Invoke-ToggleHibernation }
+            "D"  { Invoke-RemoveOneDrive }
+            "C"  { Invoke-CleanTempFiles }
             "0"  { Invoke-RestoreDefaults }
             "B"  { return }
             default { Write-Warn "Invalid option." ; Start-Sleep 1 }
         }
     }
 }
+
 
 function Invoke-RestoreDefaults {
     Write-Section "RESTORE DEFAULTS"
@@ -260,5 +269,87 @@ function Invoke-ClearEventLogs {
         wevtutil cl $log.LogName
     }
     Write-Success "Logs cleared."
+    Pause-Menu
+}
+
+function Invoke-LegacyContext {
+    Write-Section "LEGACY CONTEXT MENU"
+    try {
+        $path = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+        if (Test-Path $path) {
+            Remove-Item (Split-Path $path -Parent) -Recurse -Force
+            Write-Success "Windows 11 Modern menu restored."
+        } else {
+            New-Item $path -Force | Out-Null
+            Set-ItemProperty -Path $path -Name "(Default)" -Value ""
+            Write-Success "Legacy Context Menu enabled. Restart Explorer to see changes."
+        }
+    } catch {
+        Write-Err "Registry error: $($_.Exception.Message)"
+    }
+    Pause-Menu
+}
+
+function Invoke-ToggleHibernation {
+    Write-Section "TOGGLE HIBERNATION"
+    if (-not (Assert-Admin)) { return }
+    $status = powercfg /a
+    if ($status -like "*Hibernation is not enabled*") {
+        Write-Step "Enabling Hibernation..."
+        powercfg /hibernate on
+        Write-Success "Hibernation enabled."
+    } else {
+        Write-Step "Disabling Hibernation..."
+        powercfg /hibernate off
+        Write-Success "Hibernation disabled (Disk space reclaimed)."
+    }
+    Pause-Menu
+}
+
+function Invoke-RemoveOneDrive {
+    Write-Section "REMOVE ONEDRIVE"
+    if (-not (Assert-Admin)) { return }
+    $confirm = Read-Host "  Completely uninstall OneDrive? (Y/N)"
+    if ($confirm.ToUpper() -ne "Y") { return }
+
+    Write-Step "Closing OneDrive..."
+    taskkill /f /im OneDrive.exe 2>$null
+    
+    Write-Step "Running Uninstaller..."
+    $system64 = "$env:SystemRoot\SysWOW64\OneDriveSetup.exe"
+    $system32 = "$env:SystemRoot\System32\OneDriveSetup.exe"
+    
+    if (Test-Path $system64) {
+        Start-Process $system64 -ArgumentList "/uninstall" -Wait
+    } elseif (Test-Path $system32) {
+        Start-Process $system32 -ArgumentList "/uninstall" -Wait
+    }
+    
+    Write-Step "Cleaning remnants..."
+    Remove-Item "$env:USERPROFILE\OneDrive" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item "$env:LOCALAPPDATA\Microsoft\OneDrive" -Recurse -Force -ErrorAction SilentlyContinue
+    
+    Write-Success "OneDrive has been removed."
+    Pause-Menu
+}
+
+function Invoke-CleanTempFiles {
+    Write-Section "DEEP TEMP CLEAN"
+    if (-not (Assert-Admin)) { return }
+    
+    $paths = @(
+        "$env:TEMP\*",
+        "$env:SystemRoot\Temp\*",
+        "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\thumbcache_*.db",
+        "$env:LOCALAPPDATA\Microsoft\Windows\WebCache\*",
+        "$env:SystemRoot\Prefetch\*"
+    )
+    
+    foreach ($path in $paths) {
+        Write-Indeterminate-Bar "Cleaning: $path"
+        Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    
+    Write-Success "Temp files and cache cleared."
     Pause-Menu
 }

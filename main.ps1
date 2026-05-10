@@ -22,6 +22,7 @@ $script:NFS_ROOT = Split-Path -Parent $MyInvocation.MyCommand.Definition
 . "$NFS_ROOT\modules\mywebs.ps1"
 . "$NFS_ROOT\modules\optimizer.ps1"
 . "$NFS_ROOT\modules\maintenance.ps1"
+. "$NFS_ROOT\modules\wallpaper.ps1"
 . "$NFS_ROOT\modules\about.ps1"
 
 $Host.UI.RawUI.WindowTitle = "NFS PROGRAMMER CLI"
@@ -30,7 +31,10 @@ function Show-MainMenu {
     # Force Black Background at the engine level
     [Console]::BackgroundColor = 'Black'
     [Console]::Clear()
+    
     Show-Intro
+    Show-Login
+    
     while ($true) {
         # Keep forcing background in loop
         [Console]::BackgroundColor = 'Black'
@@ -67,6 +71,7 @@ function Show-MainMenu {
         Write-Host "  |  8.  My Webs          - Quick-launch links          |" -ForegroundColor White
         Write-Host "  |  0.  SYSTEM OPTIMIZER - Tweaks & Personalization    |" -ForegroundColor Green
         Write-Host "  |  M.  MAINTENANCE      - Health & Network tools      |" -ForegroundColor Green
+        Write-Host "  |  W.  WALLPAPERS       - Personalize Desktop         |" -ForegroundColor Green
         Write-Host "  |  9.  About            - Contact & info              |" -ForegroundColor DarkGray
         Write-Host "  |  Q.  Quit                                           |" -ForegroundColor DarkGray
         Write-Host "  +-----------------------------------------------------+" -ForegroundColor Red
@@ -85,6 +90,7 @@ function Show-MainMenu {
             "8" { Show-MyWebsMenu }
             "0" { Show-OptimizerMenu }
             "M" { Show-MaintenanceMenu }
+            "W" { Show-WallpaperMenu }
             "9" { Show-About }
             "Q" {
                 Clear-Host
